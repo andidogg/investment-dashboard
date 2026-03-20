@@ -170,7 +170,7 @@ with tab_analyzer:
     fig.add_trace(go.Scatter(x=hist.index, y=hist['EMA20'], name="EMA 20", line=dict(color="blue")), row=1, col=1)
     
     # RSI
- rsi = calculate_rsi(hist['Close'])
+    rsi = calculate_rsi(hist['Close'])
     fig.add_trace(go.Scatter(x=hist.index, y=rsi, name="RSI 14", line=dict(color="purple")), row=2, col=1)
     fig.add_hline(y=70, line_dash="dash", row=2, col=1, line_color="red")
     fig.add_hline(y=30, line_dash="dash", row=2, col=1, line_color="green")
