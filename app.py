@@ -61,11 +61,9 @@ with tab_overview:
     indices = ["^GSPC", "^DJI", "^IXIC", "^VIX"]
     cols = st.columns(4)
     for i, idx in enumerate(indices):
-        ticker = get_stock_info(idx)
-        info = ticker.info
+        info = get_stock_info(idx)
         price = info.get('regularMarketPrice') or info.get('previousClose')
         change_pct = info.get('regularMarketChangePercent', 0)
-        color = "green" if change_pct >= 0 else "red"
         with cols[i]:
             st.metric(
                 label=idx.replace("^", ""),
@@ -73,21 +71,22 @@ with tab_overview:
                 delta=f"{change_pct:+.2f}%"
             )
 
-    # Top movers (sample popular stocks)
+    # Top movers
     st.subheader("🔥 Top Movers Today")
     movers = ["AAPL", "NVDA", "TSLA", "AMD", "AMZN"]
     data = []
     for t in movers:
-        tk = get_stock_info(t)
-        info = tk.info
+        info = get_stock_info(t)
         data.append({
             "Ticker": t,
             "Price": info.get('regularMarketPrice') or info.get('previousClose'),
             "Change %": info.get('regularMarketChangePercent', 0)
         })
     df_movers = pd.DataFrame(data)
-    st.dataframe(df_movers.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%"}), use_container_width=True)
-
+    st.dataframe(
+        df_movers.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%"}), 
+        use_container_width=True
+    )
 # ====================== WATCHLIST TAB ======================
 with tab_watchlist:
     st.subheader("Your Watchlist")
