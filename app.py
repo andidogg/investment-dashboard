@@ -99,8 +99,7 @@ with tab_watchlist:
     # Live watchlist table
     watch_data = []
     for t in st.session_state.watchlist:
-        tk = yf.Ticker(t)
-        info = tk.info
+                info = get_stock_info(t)
         price = info.get('regularMarketPrice') or info.get('previousClose', 0)
         change = info.get('regularMarketChangePercent', 0)
         volume = info.get('regularMarketVolume', 0)
