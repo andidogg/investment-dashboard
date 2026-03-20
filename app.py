@@ -202,40 +202,47 @@ with tab_analyzer:
     hist = get_stock_history(selected)
     
     if hist.empty:
-        st.warning("Could not load historical data right now. Please try refreshing.")
+        st.warning("Could not load chart data right now. Try the Refresh button below.")
     else:
         # Candlestick + indicators
         fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.5, 0.2, 0.3], vertical_spacing=0.05)
         
-        # Candlestick
         fig.add_trace(go.Candlestick(x=hist.index, open=hist['Open'], high=hist['High'], low=hist['Low'], close=hist['Close'], name="Price"), row=1, col=1)
         
-        # SMA/EMA
-        hist = hist.copy()  # prevent SettingWithCopy warning
+        hist = hist.copy()
         hist['SMA50'] = hist['Close'].rolling(50).mean()
         hist['EMA20'] = hist['Close'].ewm(span=20).mean()
         fig.add_trace(go.Scatter(x=hist.index, y=hist['SMA50'], name="SMA 50", line=dict(color="orange")), row=1, col=1)
         fig.add_trace(go.Scatter(x=hist.index, y=hist['EMA20'], name="EMA 20", line=dict(color="blue")), row=1, col=1)
         
-        # RSI
         rsi = calculate_rsi(hist['Close'])
         fig.add_trace(go.Scatter(x=hist.index, y=rsi, name="RSI 14", line=dict(color="purple")), row=2, col=1)
         fig.add_hline(y=70, line_dash="dash", row=2, col=1, line_color="red")
         fig.add_hline(y=30, line_dash="dash", row=2, col=1, line_color="green")
         
-        # Volume
         fig.add_trace(go.Bar(x=hist.index, y=hist['Volume'], name="Volume", marker_color="gray"), row=3, col=1)
         
         fig.update_layout(height=800, title=f"{selected} - 6 Month Analysis", xaxis_rangeslider_visible=False)
         st.plotly_chart(fig, use_container_width=True)
     
-    # Fundamentals
+    # Safe Fundamentals (no more ValueError)
     st.subheader("Key Fundamentals")
     cols_f = st.columns(3)
+    
+    # Market Cap
     market_cap = info.get('marketCap', 0)
-    cols_f[0].metric("Market Cap", f"${market_cap/1e9:.1f}B" if market_cap else "N/A")
-    cols_f[1].metric("P/E Ratio", f"{info.get('trailingPE', 'N/A')}")
-    cols_f[2].metric("52-Week High", f"${info.get('fiftyTwoWeekHigh', 'N/A'):.2f}")
+    cap_str = f"${market_cap/1e9:.1f}B" if isinstance(market_cap, (int, float)) and market_cap > 0 else "N/A"
+    cols_f[0].metric("Market Cap", cap_str)
+    
+    # P/E Ratio
+    pe = info.get('trailingPE')
+    pe_str = f"{pe:.2f}" if isinstance(pe, (int, float)) else "N/A"
+    cols_f[1].metric("P/E Ratio", pe_str)
+    
+    # 52-Week High
+    high = info.get('fiftyTwoWeekHigh')
+    high_str = f"${high:.2f}" if isinstance(high, (int, float)) else "N/A"
+    cols_f[2].metric("52-Week High", high_str)
 # ====================== NEWS TAB ======================
 with tab_news:
     st.subheader("Latest News")
