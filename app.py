@@ -61,7 +61,7 @@ with tab_overview:
     indices = ["^GSPC", "^DJI", "^IXIC", "^VIX"]
     cols = st.columns(4)
     for i, idx in enumerate(indices):
-        ticker = yf.Ticker(idx)
+        ticker = get_stock_info(idx)
         info = ticker.info
         price = info.get('regularMarketPrice') or info.get('previousClose')
         change_pct = info.get('regularMarketChangePercent', 0)
@@ -78,7 +78,7 @@ with tab_overview:
     movers = ["AAPL", "NVDA", "TSLA", "AMD", "AMZN"]
     data = []
     for t in movers:
-        tk = yf.Ticker(t)
+        tk = get_stock_info(t)
         info = tk.info
         data.append({
             "Ticker": t,
@@ -137,20 +137,8 @@ with tab_portfolio:
         total_cost = 0
         
         for i, row in portfolio_enriched.iterrows():
-            tk = yf.Ticker(row['Ticker'])
-            info = tk.info
+                        info = get_stock_info(row['Ticker'])
             current_price = info.get('regularMarketPrice') or info.get('previousClose', row['Avg Cost'])
-            current_value = row['Shares'] * current_price
-            cost_basis = row['Shares'] * row['Avg Cost']
-            pnl = current_value - cost_basis
-            pnl_pct = (pnl / cost_basis) * 100 if cost_basis else 0
-            
-            portfolio_enriched.at[i, 'Current Price'] = current_price
-            portfolio_enriched.at[i, 'Market Value'] = current_value
-            portfolio_enriched.at[i, 'P&L $'] = pnl
-            portfolio_enriched.at[i, 'P&L %'] = pnl_pct
-            total_value += current_value
-            total_cost += cost_basis
         
         st.dataframe(portfolio_enriched.style.format({
             "Current Price": "${:,.2f}",
@@ -173,8 +161,8 @@ with tab_analyzer:
     selected = st.selectbox("Choose ticker to analyze", options=st.session_state.watchlist + ["AAPL", "NVDA", "TSLA"], index=0)
     
     ticker_obj = yf.Ticker(selected)
-    hist = ticker_obj.history(period="6mo")
-    
+        info = get_stock_info(selected)
+    hist = get_stock_history(selected)
     # Candlestick + indicators
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.5, 0.2, 0.3], vertical_spacing=0.05)
     
@@ -217,8 +205,6 @@ with tab_news:
         st.divider()
 
 # ====================== AUTO REFRESH ======================
-if auto_refresh:
-    time.sleep(60)
-    st.rerun()
+
 
 st.sidebar.success("Dashboard running live! Edit watchlist/portfolio anytime.")
