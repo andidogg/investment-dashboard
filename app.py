@@ -99,7 +99,7 @@ with tab_watchlist:
     # Live watchlist table
     watch_data = []
     for t in st.session_state.watchlist:
-                info = get_stock_info(t)
+        info = get_stock_info(t)
         price = info.get('regularMarketPrice') or info.get('previousClose', 0)
         change = info.get('regularMarketChangePercent', 0)
         volume = info.get('regularMarketVolume', 0)
@@ -107,12 +107,10 @@ with tab_watchlist:
     
     df_watch = pd.DataFrame(watch_data, columns=["Ticker", "Price", "Change %", "Volume"])
     st.dataframe(
-        df_watch.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%", "Volume": "{:,.0f}"})
-        .applymap(lambda x: "color: green" if isinstance(x, float) and x > 0 and "Change" in df_watch.columns[df_watch.values.tolist().index([x])] else "color: red", subset=["Change %"]),
+        df_watch.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%", "Volume": "{:,.0f}"}),
         use_container_width=True
     )
-
-# ====================== PORTFOLIO TAB ======================
+    # ====================== PORTFOLIO TAB ======================
 with tab_portfolio:
     st.subheader("Portfolio Tracker")
     
