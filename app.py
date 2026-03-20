@@ -107,7 +107,7 @@ with tab_overview:
     cols = st.columns(4)
     for i, idx in enumerate(indices):
         info = get_stock_info(idx)
-        price = info.get('regularMarketPrice') or info.get('previousClose')
+        price = info.get('regularMarketPrice') or info.get('previousClose') or info.get('regularMarketPreviousClose') or 0
         change_pct = info.get('regularMarketChangePercent', 0)
         with cols[i]:
             st.metric(
@@ -116,20 +116,28 @@ with tab_overview:
                 delta=f"{change_pct:+.2f}%"
             )
 
-    # Top movers
+    # Top movers — now 100% safe from None values
     st.subheader("🔥 Top Movers Today")
     movers = ["AAPL", "NVDA", "TSLA", "AMD", "AMZN"]
     data = []
     for t in movers:
         info = get_stock_info(t)
+        price = info.get('regularMarketPrice') or info.get('previousClose') or 0
+        change = info.get('regularMarketChangePercent', 0)
         data.append({
             "Ticker": t,
-            "Price": info.get('regularMarketPrice') or info.get('previousClose'),
-            "Change %": info.get('regularMarketChangePercent', 0)
+            "Price": price,
+            "Change %": change
         })
+    
     df_movers = pd.DataFrame(data)
+    
+    # Force numeric and handle None safely
+    df_movers["Price"] = pd.to_numeric(df_movers["Price"], errors="coerce").fillna(0)
+    df_movers["Change %"] = pd.to_numeric(df_movers["Change %"], errors="coerce").fillna(0)
+    
     st.dataframe(
-        df_movers.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%"}), 
+        df_movers.style.format({"Price": "${:,.2f}", "Change %": "{:+.2f}%"}),
         use_container_width=True
     )
     # ====================== PORTFOLIO TAB ======================
