@@ -63,50 +63,7 @@ def check_password():
 if not st.session_state.authenticated:
     check_password()
 
-# ====================== MAIN DASHBOARD (title only once) ======================
-st.title("🚀 SmokeDoggyDogg's Very Detailed Live Investment Dashboard")
-st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Market data via Yahoo Finance")
-# ====================== PASSWORD PROTECTION ======================
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
-def check_password():
-    st.title("🚀 SmokeDoggyDogg's Private Investment Dashboard")
-    st.caption("Market data via Yahoo Finance • Secure access required")
-    pw = st.text_input("🔒 Enter Password", type="password", key="pw")
-    if st.button("Unlock Dashboard"):
-        if pw == st.secrets["auth"]["password"]:
-            st.session_state.authenticated = True
-            st.rerun()
-        else:
-            st.error("❌ Wrong password")
-    st.stop()
-
-if not st.session_state.authenticated:
-    check_password()
-# ============================================================
-
-st.title("🚀 SmokeDoggyDogg's Very Detailed Live Investment Dashboard")
-st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Market data via Yahoo Finance")
-# ====================== PASSWORD PROTECTION ======================
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
-def check_password():
-    st.title("🚀 SmokeDoggyDogg's Private Investment Dashboard")
-    st.caption("Market data via Yahoo Finance • Secure access required")
-    pw = st.text_input("🔒 Enter Password", type="password", key="pw")
-    if st.button("Unlock Dashboard"):
-        if pw == st.secrets["auth"]["password"]:
-            st.session_state.authenticated = True
-            st.rerun()
-        else:
-            st.error("❌ Wrong password")
-    st.stop()
-
-if not st.session_state.authenticated:
-    check_password()
-# ============================================================
+# ====================== MAIN DASHBOARD (ONE TITLE ONLY) ======================
 st.title("🚀 SmokeDoggyDogg's Very Detailed Live Investment Dashboard")
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Market data via Yahoo Finance")
 
