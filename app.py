@@ -3,10 +3,18 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import pandas_ta as ta
 from datetime import datetime, timedelta
 import time
-
+def calculate_rsi(close_prices, period=14):
+    """Simple manual RSI calculation (no extra packages needed)"""
+    delta = close_prices.diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=period, min_periods=period).mean()
+    avg_loss = loss.rolling(window=period, min_periods=period).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
 st.set_page_config(page_title="SmokeDoggyDogg Live Dashboard", layout="wide", page_icon="📈")
 st.title("🚀 SmokeDoggyDogg's Very Detailed Live Investment Dashboard")
 st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Market data via Yahoo Finance")
@@ -162,7 +170,7 @@ with tab_analyzer:
     fig.add_trace(go.Scatter(x=hist.index, y=hist['EMA20'], name="EMA 20", line=dict(color="blue")), row=1, col=1)
     
     # RSI
-    rsi = ta.rsi(hist['Close'], length=14)
+ rsi = calculate_rsi(hist['Close'])
     fig.add_trace(go.Scatter(x=hist.index, y=rsi, name="RSI 14", line=dict(color="purple")), row=2, col=1)
     fig.add_hline(y=70, line_dash="dash", row=2, col=1, line_color="red")
     fig.add_hline(y=30, line_dash="dash", row=2, col=1, line_color="green")
