@@ -1,12 +1,6 @@
-import streamlit as st
-import yfinance as yf
-import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from datetime import datetime, timedelta
-import time
+# ====================== HELPER FUNCTIONS (MUST BE AT TOP) ======================
 def calculate_rsi(close_prices, period=14):
-    """Simple manual RSI calculation (no extra packages needed)"""
+    """Simple manual RSI calculation"""
     delta = close_prices.diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
@@ -15,6 +9,25 @@ def calculate_rsi(close_prices, period=14):
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
+
+@st.cache_data(ttl=90, show_spinner=False)
+def get_stock_info(ticker: str):
+    """Cached ticker info — prevents Yahoo rate limits"""
+    try:
+        tk = yf.Ticker(ticker)
+        return tk.info or {}
+    except Exception:
+        return {}
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_stock_history(ticker: str):
+    """Cached 6-month chart data"""
+    try:
+        tk = yf.Ticker(ticker)
+        return tk.history(period="6mo")
+    except Exception:
+        return pd.DataFrame()
+# =============================================================================
 st.set_page_config(page_title="SmokeDoggyDogg Live Dashboard", layout="wide", page_icon="📈")
 # ====================== PASSWORD PROTECTION ======================
 if "authenticated" not in st.session_state:
