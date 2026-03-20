@@ -130,29 +130,39 @@ with tab_portfolio:
     if not st.session_state.portfolio.empty:
         # Enrich with live data
         portfolio_enriched = st.session_state.portfolio.copy()
-        current_values = []
-        total_value = 0
-        total_cost = 0
+        total_value = 0.0
+        total_cost = 0.0
         
         for i, row in portfolio_enriched.iterrows():
-                        info = get_stock_info(row['Ticker'])
+            info = get_stock_info(row['Ticker'])
             current_price = info.get('regularMarketPrice') or info.get('previousClose', row['Avg Cost'])
+            current_value = row['Shares'] * current_price
+            cost_basis = row['Shares'] * row['Avg Cost']
+            pnl = current_value - cost_basis
+            pnl_pct = (pnl / cost_basis) * 100 if cost_basis > 0 else 0
+            
+            portfolio_enriched.at[i, 'Current Price'] = current_price
+            portfolio_enriched.at[i, 'Market Value'] = current_value
+            portfolio_enriched.at[i, 'P&L $'] = pnl
+            portfolio_enriched.at[i, 'P&L %'] = pnl_pct
+            total_value += current_value
+            total_cost += cost_basis
         
         st.dataframe(portfolio_enriched.style.format({
             "Current Price": "${:,.2f}",
             "Market Value": "${:,.2f}",
-            "P&L $": "${:,.2f}",
+            "P&L $$   ": "   $${:,.2f}",
             "P&L %": "{:+.2f}%"
         }), use_container_width=True)
         
-        col_a, col_b, col_c = st.columns(3)
+        col_a, col_b = st.columns(2)
         col_a.metric("Total Portfolio Value", f"${total_value:,.2f}", f"{((total_value-total_cost)/total_cost*100 if total_cost else 0):+.2f}%")
         col_b.metric("Total Unrealized P&L", f"${total_value - total_cost:,.2f}")
         
         # Allocation pie
-        fig_pie = go.Figure(data=[go.Pie(labels=portfolio_enriched['Ticker'], values=portfolio_enriched['Market Value'])])
-        st.plotly_chart(fig_pie, use_container_width=True)
-
+        if total_value > 0:
+            fig_pie = go.Figure(data=[go.Pie(labels=portfolio_enriched['Ticker'], values=portfolio_enriched['Market Value'])])
+            st.plotly_chart(fig_pie, use_container_width=True)
 # ====================== ANALYZER TAB ======================
 with tab_analyzer:
     st.subheader("Deep Stock Analyzer")
