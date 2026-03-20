@@ -255,14 +255,19 @@ with tab_analyzer:
     cols_f[2].metric("52-Week High", high_str)
 # ====================== NEWS TAB ======================
 with tab_news:
-    st.subheader("Latest News")
-    news = ticker_obj.news[:10] if hasattr(ticker_obj, 'news') else []
-    for item in news:
-        st.markdown(f"**{item.get('title')}**  \n{item.get('publisher')} | {datetime.fromtimestamp(item.get('providerPublishTime', 0))}")
-        st.markdown(item.get('link', ''))
-        st.divider()
-
-# ====================== AUTO REFRESH ======================
-
-
-st.sidebar.success("Dashboard running live! Edit watchlist/portfolio anytime.")
+    st.subheader("📰 Latest News")
+    selected_news = st.selectbox("Choose ticker for news", 
+                                options=st.session_state.watchlist + ["AAPL", "NVDA", "TSLA"], 
+                                index=0, key="news_select")
+    
+    news_items = get_stock_news(selected_news)
+    
+    if not news_items:
+        st.info("No news available right now or market is closed. Try refreshing.")
+    else:
+        for item in news_items:
+            st.markdown(f"**{item.get('title', 'No title')}**")
+            st.caption(f"{item.get('publisher', 'Unknown')} • {datetime.fromtimestamp(item.get('providerPublishTime', 0)).strftime('%Y-%m-%d %H:%M')}")
+            if item.get('link'):
+                st.markdown(f"[Read full article]({item['link']})")
+            st.divider()
