@@ -69,6 +69,10 @@ st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Mark
 
 # ====================== SIDEBAR ======================
 st.sidebar.header("⚙️ Controls")
+# Safe Refresh Button
+if st.sidebar.button("🔄 Refresh All Prices Now"):
+    st.cache_data.clear()
+    st.rerun()
 auto_refresh = st.sidebar.checkbox("Auto-refresh every 60 seconds", value=True)
 refresh_btn = st.sidebar.button("🔄 Manual Refresh Now")
 
@@ -177,6 +181,14 @@ with tab_portfolio:
         if total_value > 0:
             fig_pie = go.Figure(data=[go.Pie(labels=portfolio_enriched['Ticker'], values=portfolio_enriched['Market Value'])])
             st.plotly_chart(fig_pie, use_container_width=True)
+                    # CSV Export
+        csv = portfolio_enriched.to_csv(index=False).encode()
+        st.download_button(
+            label="📥 Download Portfolio as CSV",
+            data=csv,
+            file_name=f"SmokeDoggyDogg_Portfolio_{datetime.now().strftime('%Y-%m-%d')}.csv",
+            mime="text/csv"
+        )
 # ====================== ANALYZER TAB ======================
 with tab_analyzer:
     st.subheader("Deep Stock Analyzer")
