@@ -168,41 +168,44 @@ with tab_analyzer:
     st.subheader("Deep Stock Analyzer")
     selected = st.selectbox("Choose ticker to analyze", options=st.session_state.watchlist + ["AAPL", "NVDA", "TSLA"], index=0)
     
-    ticker_obj = yf.Ticker(selected)
-        info = get_stock_info(selected)
+    info = get_stock_info(selected)
     hist = get_stock_history(selected)
-    # Candlestick + indicators
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.5, 0.2, 0.3], vertical_spacing=0.05)
     
-    # Candlestick
-    fig.add_trace(go.Candlestick(x=hist.index, open=hist['Open'], high=hist['High'], low=hist['Low'], close=hist['Close'], name="Price"), row=1, col=1)
-    
-    # SMA/EMA
-    hist['SMA50'] = hist['Close'].rolling(50).mean()
-    hist['EMA20'] = hist['Close'].ewm(span=20).mean()
-    fig.add_trace(go.Scatter(x=hist.index, y=hist['SMA50'], name="SMA 50", line=dict(color="orange")), row=1, col=1)
-    fig.add_trace(go.Scatter(x=hist.index, y=hist['EMA20'], name="EMA 20", line=dict(color="blue")), row=1, col=1)
-    
-    # RSI
-    rsi = calculate_rsi(hist['Close'])
-    fig.add_trace(go.Scatter(x=hist.index, y=rsi, name="RSI 14", line=dict(color="purple")), row=2, col=1)
-    fig.add_hline(y=70, line_dash="dash", row=2, col=1, line_color="red")
-    fig.add_hline(y=30, line_dash="dash", row=2, col=1, line_color="green")
-    
-    # Volume
-    fig.add_trace(go.Bar(x=hist.index, y=hist['Volume'], name="Volume", marker_color="gray"), row=3, col=1)
-    
-    fig.update_layout(height=800, title=f"{selected} - 6 Month Analysis", xaxis_rangeslider_visible=False)
-    st.plotly_chart(fig, use_container_width=True)
+    if hist.empty:
+        st.warning("Could not load historical data right now. Please try refreshing.")
+    else:
+        # Candlestick + indicators
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.5, 0.2, 0.3], vertical_spacing=0.05)
+        
+        # Candlestick
+        fig.add_trace(go.Candlestick(x=hist.index, open=hist['Open'], high=hist['High'], low=hist['Low'], close=hist['Close'], name="Price"), row=1, col=1)
+        
+        # SMA/EMA
+        hist = hist.copy()  # prevent SettingWithCopy warning
+        hist['SMA50'] = hist['Close'].rolling(50).mean()
+        hist['EMA20'] = hist['Close'].ewm(span=20).mean()
+        fig.add_trace(go.Scatter(x=hist.index, y=hist['SMA50'], name="SMA 50", line=dict(color="orange")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=hist.index, y=hist['EMA20'], name="EMA 20", line=dict(color="blue")), row=1, col=1)
+        
+        # RSI
+        rsi = calculate_rsi(hist['Close'])
+        fig.add_trace(go.Scatter(x=hist.index, y=rsi, name="RSI 14", line=dict(color="purple")), row=2, col=1)
+        fig.add_hline(y=70, line_dash="dash", row=2, col=1, line_color="red")
+        fig.add_hline(y=30, line_dash="dash", row=2, col=1, line_color="green")
+        
+        # Volume
+        fig.add_trace(go.Bar(x=hist.index, y=hist['Volume'], name="Volume", marker_color="gray"), row=3, col=1)
+        
+        fig.update_layout(height=800, title=f"{selected} - 6 Month Analysis", xaxis_rangeslider_visible=False)
+        st.plotly_chart(fig, use_container_width=True)
     
     # Fundamentals
     st.subheader("Key Fundamentals")
-    info = ticker_obj.info
     cols_f = st.columns(3)
-    cols_f[0].metric("Market Cap", f"${info.get('marketCap', 0)/1e9:.1f}B")
+    market_cap = info.get('marketCap', 0)
+    cols_f[0].metric("Market Cap", f"${market_cap/1e9:.1f}B" if market_cap else "N/A")
     cols_f[1].metric("P/E Ratio", f"{info.get('trailingPE', 'N/A')}")
     cols_f[2].metric("52-Week High", f"${info.get('fiftyTwoWeekHigh', 'N/A'):.2f}")
-
 # ====================== NEWS TAB ======================
 with tab_news:
     st.subheader("Latest News")
