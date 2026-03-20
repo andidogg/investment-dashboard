@@ -28,14 +28,23 @@ def get_stock_info(ticker):
         return {}
 
 @st.cache_data(ttl=300, show_spinner=False)
-def get_stock_history(ticker):@st.cache_data(ttl=300, show_spinner=False)
+def get_stock_history(ticker):
+    """Cached 6-month chart data"""
+    try:
+        tk = yf.Ticker(ticker)
+        return tk.history(period="6mo")
+    except Exception:
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300, show_spinner=False)
 def get_stock_news(ticker: str):
-    """Cached latest news — prevents rate limits"""
+    """Cached latest news"""
     try:
         tk = yf.Ticker(ticker)
         return tk.news[:10] if hasattr(tk, 'news') and tk.news else []
     except Exception:
         return []
+# =============================================================================
 # =============================================================================
 
 st.set_page_config(page_title="SmokeDoggyDogg Live Dashboard", layout="wide", page_icon="📈")
