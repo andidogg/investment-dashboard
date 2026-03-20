@@ -6,9 +6,8 @@ from plotly.subplots import make_subplots
 from datetime import datetime
 import time
 
-# ====================== HELPER FUNCTIONS (MUST BE HERE) ======================
+# ====================== HELPER FUNCTIONS ======================
 def calculate_rsi(close_prices, period=14):
-    """Simple manual RSI calculation"""
     delta = close_prices.diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
@@ -20,7 +19,6 @@ def calculate_rsi(close_prices, period=14):
 
 @st.cache_data(ttl=90, show_spinner=False)
 def get_stock_info(ticker):
-    """Cached ticker info — prevents rate limits"""
     try:
         tk = yf.Ticker(ticker)
         return tk.info or {}
@@ -29,7 +27,6 @@ def get_stock_info(ticker):
 
 @st.cache_data(ttl=300, show_spinner=False)
 def get_stock_history(ticker):
-    """Cached 6-month chart data"""
     try:
         tk = yf.Ticker(ticker)
         return tk.history(period="6mo")
@@ -38,17 +35,37 @@ def get_stock_history(ticker):
 
 @st.cache_data(ttl=300, show_spinner=False)
 def get_stock_news(ticker: str):
-    """Cached latest news"""
     try:
         tk = yf.Ticker(ticker)
         return tk.news[:10] if hasattr(tk, 'news') and tk.news else []
     except Exception:
         return []
-# =============================================================================
-# =============================================================================
+# ============================================================
 
 st.set_page_config(page_title="SmokeDoggyDogg Live Dashboard", layout="wide", page_icon="📈")
 
+# ====================== PASSWORD PROTECTION ======================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+def check_password():
+    st.title("🚀 SmokeDoggyDogg's Private Investment Dashboard")
+    st.caption("Market data via Yahoo Finance • Secure access required")
+    pw = st.text_input("🔒 Enter Password", type="password", key="pw")
+    if st.button("Unlock Dashboard"):
+        if pw == st.secrets["auth"]["password"]:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("❌ Wrong password")
+    st.stop()
+
+if not st.session_state.authenticated:
+    check_password()
+
+# ====================== MAIN DASHBOARD (title only once) ======================
+st.title("🚀 SmokeDoggyDogg's Very Detailed Live Investment Dashboard")
+st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Market data via Yahoo Finance")
 # ====================== PASSWORD PROTECTION ======================
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
